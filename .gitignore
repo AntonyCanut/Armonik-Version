@@ -1,0 +1,74 @@
+# Fichiers de configuration de l'IDE JetBrains Rider
+.idea/
+
+# Dossiers de build et de compilation
+bin/
+obj/
+out/
+build/
+dist/
+
+# Fichiers de packages
+*.nupkg
+*.snupkg
+
+# Fichiers de sauvegarde créés par Windows
+Thumbs.db
+ehthumbs.db
+
+# Fichiers de sauvegarde créés par macOS
+.DS_Store
+
+# Fichiers de sauvegarde créés par l'éditeur de texte Sublime Text
+*.sublime-workspace
+
+# Fichiers de sauvegarde créés par l'éditeur de texte Vim
+*.swp
+*.swo
+*.swn
+
+# Fichiers de logs
+*.log
+*.sqllog
+
+# Autres fichiers et dossiers à ignorer
+node_modules/
+bower_components/
+
+# Fichiers de configuration de l'environnement
+.env
+.env.local
+.env.*.local
+
+# Fichiers et dossiers de dépendances
+packages/
+jspm_packages/
+
+# Fichiers de cache et de sessions
+*.cache
+*.pid.lock
+*.pyc
+__pycache__/
+s.cache
+
+# Fichiers de build - macOS
+*.app
+*.ipa
+*.dmg
+
+# Fichiers de build - Windows
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Fichiers de configuration de couverture de code
+*.cover
+*.coverage
+*.nyc_output
+
+# Fichiers et dossiers générés par les outils
+/generated/
+/tools/
+/.vs/
+/.vscode/

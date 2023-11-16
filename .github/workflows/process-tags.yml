@@ -1,0 +1,49 @@
+name: Process and Push New Tags from ArmoniK
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Exécute ce workflow toutes les heures
+
+jobs:
+  process-tags:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Install jq (pour le traitement JSON)
+        run: sudo apt-get install jq
+
+      - name: Get all tags from ArmoniK
+        id: alltags
+        run: |
+          TAGS=$(curl -s https://api.github.com/repos/aneoconsulting/ArmoniK/tags | jq -r '.[].name')
+          echo "::set-output name=TAGS::$TAGS"
+
+      - name: Read processed tags
+        run: |
+          if [ -f processed_tags.txt ]; then
+            PROCESSED_TAGS=$(cat processed_tags.txt)
+          else
+            PROCESSED_TAGS=""
+          fi
+          echo "PROCESSED_TAGS=$PROCESSED_TAGS" >> $GITHUB_ENV
+
+      - name: Process new tags
+        run: |
+          for TAG in ${{ steps.alltags.outputs.TAGS }}
+          do
+            if [[ ! $PROCESSED_TAGS =~ $TAG ]]; then
+              echo "Processing tag: $TAG"
+              # Ici, ajoutez vos étapes pour construire et pousser l'image Docker
+              # Exemple : docker build -t monimage:$TAG . et docker push monimage:$TAG
+              # Après traitement :
+              echo $TAG >> processed_tags.txt
+            fi
+          done
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add processed_tags.txt
+          git commit -m "Update processed tags list"
+          git push
+
