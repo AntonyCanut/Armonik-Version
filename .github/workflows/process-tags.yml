@@ -2,7 +2,7 @@ name: Image Version ArmoniK
 
 on:
   schedule:
-    - cron: '0 * * * *'  # Exécute ce workflow toutes les heures
+    - cron: '0 */4 * * *'
   workflow_dispatch:
 
 jobs:
@@ -13,7 +13,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}  # Utiliser GITHUB_TOKEN pour le checkout
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install jq (pour le traitement JSON)
         run: sudo apt-get install jq
