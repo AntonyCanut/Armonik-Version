@@ -1,24 +1,32 @@
-name: Process and Push New Tags from ArmoniK
+name: Image Version ArmoniK
 
 on:
   schedule:
     - cron: '0 * * * *'  # Exécute ce workflow toutes les heures
+  workflow_dispatch:
 
 jobs:
   process-tags:
     runs-on: ubuntu-latest
+    environment: Prod
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}  # Utiliser GITHUB_TOKEN pour le checkout
 
       - name: Install jq (pour le traitement JSON)
         run: sudo apt-get install jq
 
       - name: Get all tags from ArmoniK
-        id: alltags
         run: |
           TAGS=$(curl -s https://api.github.com/repos/aneoconsulting/ArmoniK/tags | jq -r '.[].name')
-          echo "::set-output name=TAGS::$TAGS"
+          echo "Tags récupérés: $TAGS"
+          echo "$TAGS" > all_tags.txt
+
+      - name: Ensure processed_tags.txt exists
+        run: |
+          touch processed_tags.txt
 
       - name: Read processed tags
         run: |
@@ -27,23 +35,33 @@ jobs:
           else
             PROCESSED_TAGS=""
           fi
-          echo "PROCESSED_TAGS=$PROCESSED_TAGS" >> $GITHUB_ENV
+
+      - name: Login to Docker Hub
+        run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
       - name: Process new tags
         run: |
-          for TAG in ${{ steps.alltags.outputs.TAGS }}
+          for TAG in $(cat all_tags.txt)
           do
-            if [[ ! $PROCESSED_TAGS =~ $TAG ]]; then
-              echo "Processing tag: $TAG"
-              # Ici, ajoutez vos étapes pour construire et pousser l'image Docker
-              # Exemple : docker build -t monimage:$TAG . et docker push monimage:$TAG
-              # Après traitement :
+            echo "Vérification du tag: $TAG"
+            if ! grep -Fxq "$TAG" processed_tags.txt; then
+              echo "Traitement du tag: $TAG"
+              # Construire et pousser l'image Docker pour le tag
+              docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/armonik-version:$TAG .
+              docker push ${{ secrets.DOCKERHUB_USERNAME }}/armonik-version:$TAG
               echo $TAG >> processed_tags.txt
+            else
+              echo "Tag déjà traité: $TAG"
             fi
           done
+
+      - name: Remove duplicate tags
+        run: |
+          sort -u processed_tags.txt -o processed_tags.txt
+
+      - name: Commit and Push changes if there are changes
+        run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add processed_tags.txt
-          git commit -m "Update processed tags list"
-          git push
-
+          git diff --staged --quiet || (git commit -m "Update processed tags list" && git push https://${{ github.token }}@github.com/${{ github.repository }} HEAD:${{ github.ref }})
