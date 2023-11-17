@@ -1,14 +1,19 @@
 # Utiliser une image de base légère, par exemple Alpine
 FROM alpine:latest
 
-# Installer curl et jq
-RUN apk add --no-cache curl jq
+# Installer git
+RUN apk add --no-cache git jq
 
 # Variable d'argument pour le tag GitHub
 ARG GITHUB_TAG
 
-# Télécharger le fichier depuis GitHub en utilisant le tag
-RUN curl -L -o /versions.tfvars.json "https://github.com/aneoconsulting/ArmoniK/raw/${GITHUB_TAG}/versions.tfvars.json"
+# Définir le répertoire de travail
+WORKDIR /app
+
+# Cloner le dépôt spécifique et extraire le fichier souhaité
+RUN git clone --depth 1 --branch ${GITHUB_TAG} https://github.com/aneoconsulting/ArmoniK.git && \
+    mv ArmoniK/versions.tfvars.json ./ && \
+    rm -rf ArmoniK
 
 # Commande par défaut (peut être remplacée par une autre commande au lancement du conteneur)
-CMD ["cat", "/versions.tfvars.json"]
+CMD ["cat", "versions.tfvars.json"]
