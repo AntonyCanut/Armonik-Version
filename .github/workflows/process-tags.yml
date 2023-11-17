@@ -46,10 +46,10 @@ jobs:
             echo "Vérification du tag: $TAG"
             if ! grep -Fxq "$TAG" processed_tags.txt; then
               # Vérifier si le fichier existe pour le tag spécifique
-              FILE_URL="https://github.com/aneoconsulting/ArmoniK/raw/${TAG}/versions.tfvars.json"
-              HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}\n" "${FILE_URL}")
+              API_URL="https://api.github.com/repos/aneoconsulting/ArmoniK/contents/versions.tfvars.json?ref=${TAG}"
+              API_RESPONSE=$(curl -o /dev/null -s -w "%{http_code}\n" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "${API_URL}")
 
-              if [ "$HTTP_STATUS" -eq 200 ]; then
+              if [ "$API_RESPONSE" -eq 200 ]; then
                 echo "Traitement du tag: $TAG"
                 # Construire et pousser l'image Docker pour le tag
                 docker build --build-arg GITHUB_TAG=${TAG} -t ${{ secrets.DOCKERHUB_USERNAME }}/armonik-version:$TAG .
