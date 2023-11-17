@@ -47,7 +47,7 @@ jobs:
             if ! grep -Fxq "$TAG" processed_tags.txt; then
               echo "Traitement du tag: $TAG"
               # Construire et pousser l'image Docker pour le tag
-              docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/armonik-version:$TAG .
+              docker build --build-arg GITHUB_TAG=$GITHUB_TAG -t ${{ secrets.DOCKERHUB_USERNAME }}/armonik-version:$TAG .
               docker push ${{ secrets.DOCKERHUB_USERNAME }}/armonik-version:$TAG
               echo $TAG >> processed_tags.txt
             else
