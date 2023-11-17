@@ -45,9 +45,11 @@ jobs:
           do
             echo "Vérification du tag: $TAG"
             if ! grep -Fxq "$TAG" processed_tags.txt; then
-              # Vérifier si le fichier existe dans le tag spécifique
-              FILE_EXISTS=$(git ls-remote --exit-code https://github.com/aneoconsulting/ArmoniK.git refs/tags/${TAG}:versions.tfvars.json && echo "yes" || echo "no")
-              if [ "$FILE_EXISTS" = "yes" ]; then
+              # Vérifier si le fichier existe pour le tag spécifique
+              FILE_URL="https://github.com/aneoconsulting/ArmoniK/raw/${TAG}/versions.tfvars.json"
+              HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}\n" "${FILE_URL}")
+
+              if [ "$HTTP_STATUS" -eq 200 ]; then
                 echo "Traitement du tag: $TAG"
                 # Construire et pousser l'image Docker pour le tag
                 docker build --build-arg GITHUB_TAG=${TAG} -t ${{ secrets.DOCKERHUB_USERNAME }}/armonik-version:$TAG .
